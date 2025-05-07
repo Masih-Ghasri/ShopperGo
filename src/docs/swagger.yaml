@@ -1,0 +1,521 @@
+definitions:
+  handlers.PersonData:
+    properties:
+      first_name:
+        example: John
+        maxLength: 10
+        minLength: 4
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 20
+        minLength: 6
+        type: string
+      mobile_number:
+        example: "09123456789"
+        maxLength: 11
+        minLength: 11
+        type: string
+    required:
+    - first_name
+    - last_name
+    - mobile_number
+    type: object
+  helper.BaseHttpResponse:
+    properties:
+      error: {}
+      result: {}
+      resultCode:
+        $ref: '#/definitions/helper.ResultCode'
+      success:
+        type: boolean
+      validationErrors:
+        items:
+          $ref: '#/definitions/validation.ValidationError'
+        type: array
+    type: object
+  helper.ResultCode:
+    enum:
+    - 0
+    - 40001
+    - 40101
+    - 40301
+    - 40401
+    - 42901
+    - 42902
+    - 50001
+    - 50002
+    type: integer
+    x-enum-varnames:
+    - Success
+    - ValidationError
+    - AuthError
+    - ForbiddenError
+    - NotFoundError
+    - LimiterError
+    - OtpLimiterError
+    - CustomRecovery
+    - InternalError
+  validation.ValidationError:
+    properties:
+      message:
+        type: string
+      property:
+        type: string
+      tag:
+        type: string
+      value:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /v1/health/:
+    get:
+      consumes:
+      - application/json
+      description: Health Check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+        "400":
+          description: Failed
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                ValidationErrors:
+                  items:
+                    $ref: '#/definitions/validation.ValidationError'
+                  type: array
+              type: object
+      summary: Health Check
+      tags:
+      - Health
+  /v1/test/:
+    get:
+      consumes:
+      - application/json
+      description: Basic endpoint to test service availability
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is working
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: string
+              type: object
+      summary: Service health check
+      tags:
+      - Test
+  /v1/test/accounts/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all user accounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of accounts
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Get user accounts
+      tags:
+      - Test
+  /v1/test/binder/body:
+    post:
+      consumes:
+      - application/json
+      description: Demonstrates JSON request body binding
+      parameters:
+      - description: Person Data
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PersonData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person data
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      security:
+      - AuthBearer: []
+      summary: JSON body binding
+      tags:
+      - Test
+  /v1/test/binder/file:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Demonstrates file upload handling
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File uploaded
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "500":
+          description: Upload failed
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      summary: File upload
+      tags:
+      - Test
+  /v1/test/binder/form:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Demonstrates form data binding
+      parameters:
+      - description: First Name
+        example: '"John"'
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Last Name
+        example: '"Doe"'
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Mobile Number
+        example: '"09123456789"'
+        in: formData
+        name: mobile_number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Form data
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Form data binding
+      tags:
+      - Test
+  /v1/test/binder/uri/{id}/{name}:
+    post:
+      consumes:
+      - application/json
+      description: Demonstrates URI path parameter binding
+      parameters:
+      - description: User ID
+        example: 123
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Name
+        example: '"john"'
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URI parameters
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      security:
+      - AuthBearer: []
+      summary: URI parameter binding
+      tags:
+      - Test
+  /v1/test/header1/:
+    get:
+      consumes:
+      - application/json
+      description: Demonstrates header binding - direct access
+      parameters:
+      - description: User ID
+        example: '"user123"'
+        in: header
+        name: UserId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Header data
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Get headers (Method 1)
+      tags:
+      - Test
+  /v1/test/header2/:
+    get:
+      consumes:
+      - application/json
+      description: Demonstrates header binding - struct binding
+      parameters:
+      - description: User ID
+        example: '"user123"'
+        in: header
+        name: UserId
+        required: true
+        type: string
+      - description: Browser Info
+        example: '"Chrome"'
+        in: header
+        name: Browser
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Header data
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Get headers (Method 2)
+      tags:
+      - Test
+  /v1/test/query1:
+    get:
+      consumes:
+      - application/json
+      description: Demonstrates single-value query parameter binding
+      parameters:
+      - description: Item ID
+        example: '"123"'
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Item Name
+        example: '"test"'
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query parameters
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Query binding (single)
+      tags:
+      - Test
+  /v1/test/query2:
+    get:
+      consumes:
+      - application/json
+      description: Demonstrates array query parameter binding
+      parameters:
+      - collectionFormat: multi
+        description: Item IDs
+        example: '"123,456"'
+        in: query
+        items:
+          type: string
+        name: id
+        required: true
+        type: array
+      - description: Item Name
+        example: '"test"'
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query parameters
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+      summary: Query binding (array)
+      tags:
+      - Test
+  /v1/test/users/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all system users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: string
+              type: object
+      summary: Get all users
+      tags:
+      - Test
+  /v1/test/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves user details by user ID
+      parameters:
+      - description: User ID
+        example: '"123"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      summary: Get user by ID
+      tags:
+      - Test
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user in the system
+      parameters:
+      - description: User ID
+        example: '"123"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      summary: Add new user
+      tags:
+      - Test
+  /v1/test/users/{username}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves user details by username
+      parameters:
+      - description: Username
+        example: '"johndoe"'
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.BaseHttpResponse'
+            - properties:
+                result:
+                  type: object
+              type: object
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/helper.BaseHttpResponse'
+      summary: Get user by username
+      tags:
+      - Test
+swagger: "2.0"
