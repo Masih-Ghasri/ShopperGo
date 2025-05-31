@@ -7,7 +7,7 @@ import (
 )
 
 type BaseModel struct {
-	Id         int            `gorm:"primary_key;AUTO_INCREMENT"`
+	Id         int            `gorm:"primaryKey;autoIncrement"`
 	CreatedAt  time.Time      `gorm:"type:timestamptz;default:CURRENT_TIMESTAMP;not null"`
 	ModifiedAt sql.NullTime   `gorm:"type:timestamptz;default:CURRENT_TIMESTAMP;null"`
 	DeletedAt  sql.NullTime   `gorm:"type:timestamptz;default:CURRENT_TIMESTAMP;null"`

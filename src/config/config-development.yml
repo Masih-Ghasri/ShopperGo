@@ -13,7 +13,7 @@ postgres:
   port: 5432
   user: root
   password: passroot
-  dbName: "Masih-Ghasri change me"
+  dbName: shop_db
   sslMode: disable
   maxIdleConns: 15
   maxOpenConns: 100

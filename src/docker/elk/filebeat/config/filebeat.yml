@@ -1,3 +1,7 @@
+## Filebeat configuration
+## https://github.com/elastic/beats/blob/main/deploy/docker/filebeat.docker.yml
+#
+
 name: filebeat
 filebeat.inputs:
   - type: log
